@@ -1,9 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class XanoService {
   static const String baseUrl = 'https://cooploto.xano.com/api:62c05b5091f242001a499832';
-  static const String apiKey = 'YOUR_XANO_API_KEY'; // Remplacez par votre clé API Xano
+  static String get apiKey {
+    if (kIsWeb) {
+      throw UnsupportedError('Les variables d\'environnement ne sont pas supportées sur le web');
+    }
+    return Platform.environment['XANO_API_KEY'] ?? 'YOUR_XANO_API_KEY';
+  }
 
   Future<bool> login(String email, String password) async {
     try {
