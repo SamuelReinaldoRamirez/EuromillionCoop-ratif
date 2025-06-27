@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/xano_service.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,17 +14,55 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      final email = emailController.text;
-      final password = passwordController.text;
+  // void _login() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     final email = emailController.text;
+  //     final password = passwordController.text;
 
-      // TODO: Connecter à ton backend ici
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Connexion avec $email')),
-      );
-    }
+  //     try {
+  //       // final success = await XanoService().login(email, password);
+  //       final response = await XanoService().login(email, password);
+  //       if (response.statusCode == 200 || response.statusCode == 201) {
+  //         //storer le token dans le local storage
+  //         //il faut ajouter le token dans le local storage response.body.authToken
+  //         const SnackBar(content: Text('Connecté : ')),
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => const HomePage()),
+  //         );
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Email ou mot de passe incorrect')),
+  //         );
+  //       }
+  //     } catch (e) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Erreur lors de la connexion: $e')),
+  //       );
+  //     }
+  //   }
+  // }
+
+  void _login() async {
+  final email = emailController.text;
+  final password = passwordController.text;
+
+  final response = await XanoService().login(email, password);
+
+  if (response['statusCode'] == 200 || response['statusCode'] == 201) {
+    final token = response['authToken'] ?? 'inconnu';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Connecté : $token')),
+    );
+    // Redirection éventuelle ici
+  } else {
+    print(response['message']);
+    print(response['body']);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur: ${response['message']}')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
