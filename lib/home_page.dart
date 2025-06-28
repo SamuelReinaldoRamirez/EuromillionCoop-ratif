@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,13 +10,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  Future<void> _logout() async {
+    try {
+      // Supprimer le token d'authentification
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('authToken');
+      
+      // Naviguer vers la page de connexion
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la déconnexion: $e')),
+      );
+    }
+  }
   late TabController _tabController;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
 
   @override
   void dispose() {
@@ -27,6 +43,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         title: const Text('CoopLoto'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Déconnexion',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -47,9 +70,45 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     );
   }
 
+  String? _authToken;
+
+  //   @override
+  // void initState() {
+  //   super.initState();
+  //   _tabController = TabController(length: 3, vsync: this);
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadAuthToken();
+  }
+
+  Future<void> _loadAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _authToken = prefs.getString('authToken');
+    });
+  }
+
   Widget _buildHomeTab() {
-    return const Center(
-      child: Text('Contenu de l\'onglet Accueil'),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('Bienvenue sur CoopLoto !'),
+          const SizedBox(height: 20),
+          if (_authToken != null)
+            Text(
+              'Token d\'authentification:\n$_authToken',
+              style: const TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          if (_authToken == null)
+            const Text('Pas de token d\'authentification'),
+        ],
+      ),
     );
   }
 

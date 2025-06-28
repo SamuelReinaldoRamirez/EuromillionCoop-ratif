@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/xano_service.dart';
 import 'home_page.dart';
 
@@ -50,11 +51,22 @@ class _LoginPageState extends State<LoginPage> {
   final response = await XanoService().login(email, password);
 
   if (response['statusCode'] == 200 || response['statusCode'] == 201) {
-    final token = response['authToken'] ?? 'inconnu';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Connecté : $token')),
-    );
-    // Redirection éventuelle ici
+    final token = response['authToken'];
+    if (token != null) {
+      // Stocker le token dans SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('authToken', token);
+      
+      // Naviguer vers la page d'accueil
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: Token non reçu')),
+      );
+    }
   } else {
     print(response['message']);
     print(response['body']);

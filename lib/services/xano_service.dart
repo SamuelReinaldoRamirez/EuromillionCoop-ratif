@@ -79,7 +79,7 @@ class XanoService {
   Future<Map<String, dynamic>> register(String email, String password, [String? pseudo]) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/register'),
+        Uri.parse('$baseUrl/auth/signup'),
         headers: {
           'Content-Type': 'application/json',
           // 'Authorization': 'Bearer $apiKey',
